@@ -1,0 +1,11 @@
+using System.ComponentModel.DataAnnotations;
+namespace SecureBank.DTOs;
+public record LoginRequest([Required,EmailAddress,MaxLength(256)] string Email,[Required,MaxLength(128)] string Password);
+public record RegisterRequest([Required,EmailAddress,MaxLength(256)] string Email,[Required,MinLength(12),MaxLength(128)] string Password,[Required,MaxLength(80)] string DisplayName);
+public record TransferRequest(Guid FromAccountId,[Required,MaxLength(40)] string ToAccountNumber,[Range(typeof(decimal),"0.01","1000000000")] decimal Amount,[Required,MaxLength(140)] string Title);
+public record OtpRequest([Required,RegularExpression("^[0-9]{6}$")] string Code);
+public record ResetRequest([Required,EmailAddress,MaxLength(256)] string Email);
+public record ResetConfirmRequest([Required,EmailAddress,MaxLength(256)] string Email,[Required,MaxLength(4096)] string Token,[Required,MinLength(12),MaxLength(128)] string Password);
+public record PasswordRequest([Required,MaxLength(128)] string CurrentPassword,[Required,MinLength(12),MaxLength(128)] string NewPassword);
+public record RoleRequest([Required,RegularExpression("^(CLIENT|EMPLOYEE|ADMIN)$")] string Role);
+public record BlockRequest(bool Blocked);

@@ -1,0 +1,37 @@
+name: SecureBank checks
+on: [push, pull_request]
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: securebank
+          POSTGRES_PASSWORD: ci-only-password
+          POSTGRES_DB: securebank_tests
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U securebank"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      TEST_DB: Host=localhost;Database=securebank_tests;Username=securebank;Password=ci-only-password
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - run: dotnet build SecureBank.sln --configuration Release
+      - run: dotnet test tests/SecureBank.Tests.csproj --configuration Release --no-build --logger "trx;LogFileName=security.trx"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+        working-directory: frontend
+      - run: npm run build
+        working-directory: frontend
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-test-results
+          path: tests/TestResults/

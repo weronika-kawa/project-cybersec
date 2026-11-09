@@ -1,0 +1,11 @@
+.tools/
+.env
+.docker-local/
+**/bin/
+**/obj/
+**/node_modules/
+**/dist/
+backups/
+TestResults/
+*.user
+.DS_Store

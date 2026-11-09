@@ -1,0 +1,8 @@
+.git
+.tools
+.env
+backups
+**/bin
+**/obj
+**/node_modules
+**/dist

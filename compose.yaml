@@ -1,0 +1,44 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: securebank
+      POSTGRES_USER: securebank
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Copy .env.example to .env}
+    volumes:
+      - bank-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U securebank]
+      interval: 5s
+      retries: 20
+  api:
+    build: ./backend
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__Bank: Host=db;Database=securebank;Username=securebank;Password=${POSTGRES_PASSWORD}
+      Demo__Enabled: 'true'
+      Demo__Password: ${DEMO_PASSWORD:?Set DEMO_PASSWORD}
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - bank-keys:/keys
+  web:
+    build: ./frontend
+    ports:
+      - '127.0.0.1:8080:80'
+    depends_on: [api]
+  tests:
+    profiles: [test]
+    build:
+      context: .
+      dockerfile: tests/Dockerfile
+    environment:
+      TEST_DB: Host=db;Database=securebank_tests;Username=securebank;Password=${POSTGRES_PASSWORD}
+    depends_on:
+      db:
+        condition: service_healthy
+volumes:
+  bank-data:
+  bank-keys:
